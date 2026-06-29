@@ -22,7 +22,6 @@ app.use(express.json());
 // ARCHIVOS ESTÁTICOS
 // =========================
 
-app.use(express.static(path.join(__dirname, "public")));
 
 // =========================
 // LOGIN
@@ -49,7 +48,11 @@ app.post("/login", (req, res) => {
 // =========================
 
 app.get("*", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "index.html"));
+    app.use(express.static(__dirname));
+
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "index.html"));
+});
 });
 
 // =========================
