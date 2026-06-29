@@ -25,7 +25,7 @@ body{
 
 .banner{
     width:100%;
-    height:180px;
+    aspect-ratio: 3 / 1;
     border-radius:12px;
     overflow:hidden;
     background:white;
@@ -36,10 +36,9 @@ body{
 .banner img{
     width:100%;
     height:100%;
-    object-fit:contain;
-    object-position:center;
+    object-fit: cover;
+    object-position: center;
 }
-
 /* =========================
    CONTROLES
 ========================= */
