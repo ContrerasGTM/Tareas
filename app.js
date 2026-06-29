@@ -256,3 +256,6 @@ window.onclick = function(e) {
         modal.style.display = "none";
     }
 };
+function storePreviousValue(select) {
+    select.dataset.previous = select.value;
+}
