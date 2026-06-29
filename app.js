@@ -211,14 +211,20 @@ async function deleteTask(id) {
 // STATUS
 // =========================
 
-async function changeStatus(id, status) {
-    if (!(await authenticate())) return;
+async function changeStatus(id, newStatus, selectElement) {
 
     const task = tasks.find(t => t.id === id);
     if (!task) return;
 
-    if (task.status !== status) {
-        task.status = status;
+    const oldStatus = task.status;
+
+    if (!(await authenticate())) {
+        selectElement.value = oldStatus;
+        return;
+    }
+
+    if (oldStatus !== newStatus) {
+        task.status = newStatus;
         task.statusUpdatedAt = getDateTime();
     }
 
