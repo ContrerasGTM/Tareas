@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Tablero Kanban</title>
+
+<link rel="stylesheet" href="styles.css">
+
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="banner">
+<img src="IMG_3357.jpeg" alt="Banner">
+</div>
+
+<div class="board">
+
+<div class="column">
+<div class="column-header pending">
+PENDIENTES
+</div>
+<div id="pendingTasks" class="tasks"></div>
+</div>
+
+<div class="column">
+<div class="column-header progress">
+EN PROCESO
+</div>
+<div id="progressTasks" class="tasks"></div>
+</div>
+
+<div class="column">
+<div class="column-header completed">
+COMPLETADAS
+</div>
+<div id="completedTasks" class="tasks"></div>
+</div>
+
+</div>
+
+</div>
+
+<br>
+
+<div class="controls">
+<button class="primary" onclick="openModal()">
+Nueva tarea
+</button>
+</div>
+
+<div class="modal" id="taskModal">
+
+<div class="modal-content">
+
+<button onclick="closeModal()">✕</button>
+
+<h2>Editar tarea</h2>
+
+<input type="hidden" id="taskId">
+
+<input
+type="text"
+id="taskTitle"
+placeholder="Nombre de tarea">
+
+<input
+type="text"
+id="taskDesc"
+placeholder="Descripción">
+
+<input
+type="text"
+id="taskResponsible"
+placeholder="Responsable">
+
+<select id="taskStatus">
+<option value="pending">Pendiente</option>
+<option value="progress">En proceso</option>
+<option value="completed">Completada</option>
+</select>
+
+<button
+class="success"
+onclick="saveTask()">
+Guardar tarea
+</button>
+
+</div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<script src="app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,211 @@
+/* =========================
+   RESET
+========================= */
+
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Arial, Helvetica, sans-serif;
+}
+
+body{
+    background:#f5f5f5;
+    padding:20px;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
+}
+
+/* =========================
+   BANNER
+========================= */
+
+.banner{
+    width:100%;
+    height:180px;
+    border-radius:12px;
+    overflow:hidden;
+    background:white;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+    margin-bottom:20px;
+}
+
+.banner img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+}
+
+/* =========================
+   CONTROLES
+========================= */
+
+.controls{
+    display:flex;
+    justify-content:center;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+button{
+    border:none;
+    padding:12px 18px;
+    border-radius:8px;
+    cursor:pointer;
+    font-weight:bold;
+}
+
+.primary{
+    background:#0066ff;
+    color:white;
+}
+
+.success{
+    background:#28a745;
+    color:white;
+}
+
+.danger{
+    background:#dc3545;
+    color:white;
+}
+
+/* =========================
+   BOARD
+========================= */
+
+.board{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:15px;
+}
+
+.column{
+    background:white;
+    border-radius:12px;
+    overflow:hidden;
+    min-height:500px;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+}
+
+.column-header{
+    color:white;
+    text-align:center;
+    font-weight:bold;
+    padding:15px;
+    font-size:18px;
+}
+
+.pending{
+    background:#e53935;
+}
+
+.progress{
+    background:#fdd835;
+    color:black;
+}
+
+.completed{
+    background:#43a047;
+}
+
+.tasks{
+    padding:12px;
+}
+
+/* =========================
+   CARD
+========================= */
+
+.card{
+    background:#fafafa;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:12px;
+    margin-bottom:12px;
+}
+
+.card-title{
+    font-weight:bold;
+    margin-bottom:8px;
+}
+
+.card-desc{
+    color:#444;
+    margin-bottom:8px;
+}
+
+.card-info{
+    font-size:13px;
+    color:#666;
+    margin-bottom:6px;
+}
+
+/* =========================
+   ACTIONS
+========================= */
+
+.card-actions{
+    display:flex;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+select{
+    padding:6px;
+    border-radius:6px;
+}
+
+/* =========================
+   MODAL
+========================= */
+
+.modal{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.6);
+    justify-content:center;
+    align-items:center;
+}
+
+.modal-content{
+    background:white;
+    width:90%;
+    max-width:500px;
+    padding:20px;
+    border-radius:12px;
+}
+
+.modal-content h2{
+    margin-bottom:15px;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select{
+    width:100%;
+    margin-bottom:12px;
+    padding:10px;
+}
+
+/* =========================
+   RESPONSIVE
+========================= */
+
+@media(max-width:900px){
+
+.board{
+    grid-template-columns:1fr;
+}
+
+.banner{
+    height:120px;
+}
+
+}
