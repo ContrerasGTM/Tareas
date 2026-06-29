@@ -1,347 +1,251 @@
-Archivo recibido. La migración completa requiere reescribir el flujo async.
-
-let tasks =
-JSON.parse(localStorage.getItem("kanbanTasks")) || [];
+let tasks = JSON.parse(localStorage.getItem("kanbanTasks")) || [];
 
 // =========================
-// AUTENTICACIÓN
+// AUTH BACKEND
 // =========================
-
-const PASSWORD = "3261"; // Cambia aquí la contraseña
 
 let authenticated = false;
 
-function authenticate(){
+async function authenticate() {
+    if (authenticated) return true;
 
-if(authenticated) return true;
+    const pass = prompt("Ingrese la contraseña:");
 
-let pass = prompt("Ingrese la contraseña:");
+    if (pass === null) return false;
 
-if(pass === null) {
-    // Canceló el prompt → NO bloquear sistema
-    return false;
-}
+    try {
+        const res = await fetch("/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password: pass })
+        });
 
-if(pass === PASSWORD){
+        const data = await res.json();
 
-authenticated = true;
-return true;
+        if (data.success) {
+            authenticated = true;
+            return true;
+        } else {
+            alert("Contraseña incorrecta");
+            return false;
+        }
 
-}
-
-alert("Contraseña incorrecta.");
-
-return false;
-
+    } catch (err) {
+        console.error("Error login:", err);
+        alert("Error de conexión con el servidor");
+        return false;
+    }
 }
 
 // =========================
-// FECHAS
+// FECHA
 // =========================
 
-function getDateTime(){
+function getDateTime() {
+    const now = new Date();
 
-let now=new Date();
-
-let day=String(now.getDate()).padStart(2,"0");
-let month=String(now.getMonth()+1).padStart(2,"0");
-let year=now.getFullYear();
-
-let hour=String(now.getHours()).padStart(2,"0");
-let minute=String(now.getMinutes()).padStart(2,"0");
-
-return `${day}/${month}/${year} ${hour}:${minute}`;
-
+    return `${String(now.getDate()).padStart(2,"0")}/${
+        String(now.getMonth()+1).padStart(2,"0")}/${
+        now.getFullYear()} ${
+        String(now.getHours()).padStart(2,"0")}:${
+        String(now.getMinutes()).padStart(2,"0")}`;
 }
-
-// asegurar render cuando carga la página
-window.addEventListener("load",renderTasks);
 
 // =========================
-// RENDER
+// RENDER (SAFE)
 // =========================
 
-function renderTasks(){
+function renderTasks() {
+    const pending = document.getElementById("pendingTasks");
+    const progress = document.getElementById("progressTasks");
+    const completed = document.getElementById("completedTasks");
 
-document.getElementById("pendingTasks").innerHTML="";
-document.getElementById("progressTasks").innerHTML="";
-document.getElementById("completedTasks").innerHTML="";
+    if (!pending || !progress || !completed) {
+        console.error("Faltan contenedores Kanban en HTML");
+        return;
+    }
 
-tasks.forEach(task=>{
+    pending.innerHTML = "";
+    progress.innerHTML = "";
+    completed.innerHTML = "";
 
-let card=document.createElement("div");
+    tasks.forEach(task => {
+        const card = document.createElement("div");
+        card.className = "card";
 
-card.className="card";
+        card.innerHTML = `
+            <div class="card-title">${task.title}</div>
 
-card.innerHTML=`
+            <div class="card-desc">${task.desc || "-"}</div>
 
-<div class="card-title">
+            <div class="card-info"><b>Responsable:</b><br>${task.responsible || "-"}</div>
 
-${task.title}
+            <div class="card-info"><b>Creada:</b><br>${task.createdAt}</div>
 
-</div>
+            <div class="card-info"><b>Último cambio:</b><br>${task.statusUpdatedAt}</div>
 
-<div class="card-desc">
+            <div class="card-actions">
+                <select onchange="changeStatus(${task.id},this.value)">
+                    <option value="pending" ${task.status==="pending"?"selected":""}>Pendiente</option>
+                    <option value="progress" ${task.status==="progress"?"selected":""}>En proceso</option>
+                    <option value="completed" ${task.status==="completed"?"selected":""}>Completada</option>
+                </select>
 
-${task.desc || "-"}
+                <button onclick="editTask(${task.id})">✏️</button>
+                <button class="danger" onclick="deleteTask(${task.id})">🗑</button>
+            </div>
+        `;
 
-</div>
+        const map = {
+            pending,
+            progress,
+            completed
+        };
 
-<div class="card-info">
-
-<b>Responsable:</b><br>
-
-${task.responsible || "-"}
-
-</div>
-
-<div class="card-info">
-
-<b>Creada:</b><br>
-
-${task.createdAt}
-
-</div>
-
-<div class="card-info">
-
-<b>Último cambio:</b><br>
-
-${task.statusUpdatedAt}
-
-</div>
-
-<div class="card-actions">
-
-<select onchange="changeStatus(${task.id},this.value)">
-
-<option value="pending" ${task.status==="pending"?"selected":""}>Pendiente</option>
-
-<option value="progress" ${task.status==="progress"?"selected":""}>En proceso</option>
-
-<option value="completed" ${task.status==="completed"?"selected":""}>Completada</option>
-
-</select>
-
-<button onclick="editTask(${task.id})">
-
-✏️
-
-</button>
-
-<button
-class="danger"
-onclick="deleteTask(${task.id})">
-
-🗑
-
-</button>
-
-</div>
-
-`;
-
-if(task.status==="pending"){
-
-document.getElementById("pendingTasks").appendChild(card);
-
+        map[task.status]?.appendChild(card);
+    });
 }
 
-if(task.status==="progress"){
+// =========================
+// MODAL
+// =========================
 
-document.getElementById("progressTasks").appendChild(card);
+async function openModal() {
+    if (!(await authenticate())) return;
 
+    document.getElementById("taskModal").style.display = "flex";
+    document.getElementById("taskId").value = "";
+    document.getElementById("taskTitle").value = "";
+    document.getElementById("taskDesc").value = "";
+    document.getElementById("taskResponsible").value = "";
+    document.getElementById("taskStatus").value = "pending";
 }
 
-if(task.status==="completed"){
-
-document.getElementById("completedTasks").appendChild(card);
-
+function closeModal() {
+    const modal = document.getElementById("taskModal");
+    if (modal) modal.style.display = "none";
 }
 
+// =========================
+// SAVE TASK
+// =========================
+
+async function saveTask() {
+    if (!(await authenticate())) return;
+
+    const id = document.getElementById("taskId").value;
+    const title = document.getElementById("taskTitle").value;
+    const desc = document.getElementById("taskDesc").value;
+    const responsible = document.getElementById("taskResponsible").value;
+    const status = document.getElementById("taskStatus").value;
+
+    if (!title.trim()) {
+        alert("Ingrese una tarea");
+        return;
+    }
+
+    if (id) {
+        const task = tasks.find(t => t.id == id);
+        if (!task) return;
+
+        const prev = task.status;
+
+        task.title = title;
+        task.desc = desc;
+        task.responsible = responsible;
+        task.status = status;
+
+        if (prev !== status) {
+            task.statusUpdatedAt = getDateTime();
+        }
+
+    } else {
+        const now = getDateTime();
+
+        tasks.push({
+            id: Date.now(),
+            title,
+            desc,
+            responsible,
+            status,
+            createdAt: now,
+            statusUpdatedAt: now
+        });
+    }
+
+    saveTasks();
+    closeModal();
+    renderTasks();
+}
+
+// =========================
+// EDIT / DELETE
+// =========================
+
+async function editTask(id) {
+    if (!(await authenticate())) return;
+
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    document.getElementById("taskId").value = task.id;
+    document.getElementById("taskTitle").value = task.title;
+    document.getElementById("taskDesc").value = task.desc;
+    document.getElementById("taskResponsible").value = task.responsible || "";
+    document.getElementById("taskStatus").value = task.status;
+
+    document.getElementById("taskModal").style.display = "flex";
+}
+
+async function deleteTask(id) {
+    if (!(await authenticate())) return;
+
+    if (confirm("¿Eliminar tarea?")) {
+        tasks = tasks.filter(t => t.id !== id);
+        saveTasks();
+        renderTasks();
+    }
+}
+
+// =========================
+// STATUS
+// =========================
+
+async function changeStatus(id, status) {
+    if (!(await authenticate())) return;
+
+    const task = tasks.find(t => t.id === id);
+    if (!task) return;
+
+    if (task.status !== status) {
+        task.status = status;
+        task.statusUpdatedAt = getDateTime();
+    }
+
+    saveTasks();
+    renderTasks();
+}
+
+// =========================
+// STORAGE
+// =========================
+
+function saveTasks() {
+    localStorage.setItem("kanbanTasks", JSON.stringify(tasks));
+}
+
+// =========================
+// INIT SAFE
+// =========================
+
+window.addEventListener("load", () => {
+    renderTasks();
 });
 
-}
-
-function openModal(){
-
-if(!authenticate()) return;
-
-document.getElementById("taskModal").style.display="flex";
-
-document.getElementById("taskId").value="";
-document.getElementById("taskTitle").value="";
-document.getElementById("taskDesc").value="";
-document.getElementById("taskResponsible").value="";
-document.getElementById("taskStatus").value="pending";
-
-}
-
-function closeModal(){
-
-document.getElementById("taskModal").style.display="none";
-
-}
-
-function saveTask(){
-
-if(!authenticate()) return;
-
-let id=document.getElementById("taskId").value;
-
-let title=document.getElementById("taskTitle").value;
-
-let desc=document.getElementById("taskDesc").value;
-
-let responsible=document.getElementById("taskResponsible").value;
-
-let status=document.getElementById("taskStatus").value;
-
-if(title.trim()===""){
-
-alert("Ingrese una tarea");
-
-return;
-
-}
-
-if(id){
-
-let task=tasks.find(t=>t.id==id);
-
-// Guardar el estado anterior
-let previousStatus=task.status;
-
-task.title=title;
-task.desc=desc;
-task.responsible=responsible;
-
-// Solo actualizar la fecha si cambió el estado
-if(previousStatus!==status){
-
-task.status=status;
-task.statusUpdatedAt=getDateTime();
-
-}else{
-
-task.status=status;
-
-}
-
-}else{
-
-let now=getDateTime();
-
-tasks.push({
-
-id:Date.now(),
-
-title,
-
-desc,
-
-responsible,
-
-status,
-
-createdAt:now,
-
-statusUpdatedAt:now
-
-});
-
-}
-
-saveTasks();
-
-closeModal();
-
-renderTasks();
-
-}
-
-function editTask(id){
-
-if(!authenticate()) return;
-
-let task=tasks.find(t=>t.id===id);
-
-document.getElementById("taskId").value=task.id;
-
-document.getElementById("taskTitle").value=task.title;
-
-document.getElementById("taskDesc").value=task.desc;
-
-document.getElementById("taskResponsible").value=task.responsible || "";
-
-document.getElementById("taskStatus").value=task.status;
-
-document.getElementById("taskModal").style.display="flex";
-
-}
-
-function deleteTask(id){
-
-if(!authenticate()) return;
-
-if(confirm("¿Eliminar tarea?")){
-
-tasks=tasks.filter(t=>t.id!==id);
-
-saveTasks();
-
-renderTasks();
-
-}
-
-}
-
-function changeStatus(id,status){
-
-if(!authenticate()) return;
-
-let task=tasks.find(t=>t.id===id);
-
-let previousStatus=task.status;
-
-// Solo si realmente cambia el estado
-if(previousStatus!==status){
-
-task.status=status;
-task.statusUpdatedAt=getDateTime();
-
-}else{
-
-task.status=status;
-
-}
-
-saveTasks();
-
-renderTasks();
-
-}
-
-// =========================
-// LOCAL STORAGE
-// =========================
-
-function saveTasks(){
-
-localStorage.setItem(
-"kanbanTasks",
-JSON.stringify(tasks)
-);
-
-}
-
-// Cerrar modal al hacer clic fuera
-window.onclick=function(e){
-
-if(e.target.id==="taskModal"){
-
-document.getElementById("taskModal").style.display="none";
-
-}
-
-}
+// cerrar modal click fuera
+window.onclick = function(e) {
+    const modal = document.getElementById("taskModal");
+    if (e.target === modal) {
+        modal.style.display = "none";
+    }
+};
