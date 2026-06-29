@@ -85,7 +85,7 @@ function renderTasks() {
             <div class="card-info"><b>Último cambio:</b><br>${task.statusUpdatedAt}</div>
 
             <div class="card-actions">
-                <select onchange="changeStatus(${task.id},this.value)">
+            onchange="changeStatus(${task.id},this.value,this)"
                     <option value="pending" ${task.status==="pending"?"selected":""}>Pendiente</option>
                     <option value="progress" ${task.status==="progress"?"selected":""}>En proceso</option>
                     <option value="completed" ${task.status==="completed"?"selected":""}>Completada</option>
