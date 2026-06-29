@@ -85,8 +85,10 @@ function renderTasks() {
             <div class="card-info"><b>Último cambio:</b><br>${task.statusUpdatedAt}</div>
 
             <div class="card-actions">
-            onmousedown="storePreviousValue(this)" 
-onchange="changeStatus(${task.id},this.value,this)"
+                <select 
+                    onmousedown="storePreviousValue(this)" 
+                    onchange="changeStatus(${task.id}, this.value, this)"
+                >
                     <option value="pending" ${task.status==="pending"?"selected":""}>Pendiente</option>
                     <option value="progress" ${task.status==="progress"?"selected":""}>En proceso</option>
                     <option value="completed" ${task.status==="completed"?"selected":""}>Completada</option>
@@ -256,6 +258,7 @@ window.onclick = function(e) {
         modal.style.display = "none";
     }
 };
+
 function storePreviousValue(select) {
     select.dataset.previous = select.value;
 }
